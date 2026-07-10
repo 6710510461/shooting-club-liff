@@ -10,6 +10,7 @@
 
   <title>สมัครสมาชิกชมรมยิงปืน</title>
 
+  <!-- LINE LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
@@ -20,22 +21,23 @@
     body {
       font-family: Arial, sans-serif;
       max-width: 420px;
+      min-height: 100vh;
       margin: auto;
       padding: 24px;
       background: #f5f5f5;
     }
 
     .card {
-      background: white;
+      background: #ffffff;
       padding: 24px;
       border-radius: 16px;
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
     }
 
     h2 {
-      text-align: center;
       margin-top: 0;
       margin-bottom: 24px;
+      text-align: center;
     }
 
     input {
@@ -47,6 +49,11 @@
       font-size: 16px;
     }
 
+    input:focus {
+      border-color: #555555;
+      outline: none;
+    }
+
     button {
       width: 100%;
       padding: 14px;
@@ -54,10 +61,12 @@
       border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
+      background: #222222;
+      color: #ffffff;
     }
 
     button:disabled {
-      opacity: 0.6;
+      opacity: 0.55;
       cursor: not-allowed;
     }
 
@@ -66,6 +75,7 @@
       text-align: center;
       font-size: 14px;
       color: #666666;
+      white-space: pre-line;
     }
 
     .success {
@@ -81,30 +91,35 @@
 <body>
 
   <div class="card">
+
     <h2>สมัครสมาชิกชมรมยิงปืน</h2>
 
     <input
       id="studentId"
       type="text"
       inputmode="numeric"
+      maxlength="20"
       placeholder="รหัสนักศึกษา"
     >
 
     <input
       id="name"
       type="text"
+      maxlength="100"
       placeholder="ชื่อ - นามสกุล"
     >
 
     <input
       id="faculty"
       type="text"
+      maxlength="100"
       placeholder="คณะ"
     >
 
     <button
       id="registerButton"
       type="button"
+      onclick="saveData()"
       disabled
     >
       กำลังเชื่อมต่อ LINE...
@@ -113,12 +128,40 @@
     <div id="statusText">
       กำลังเริ่มต้นระบบ LINE...
     </div>
+
   </div>
 
+  <!-- รับผลลัพธ์จาก Apps Script แบบซ่อน -->
+  <iframe
+    id="apiFrame"
+    name="apiFrame"
+    title="API response"
+    style="display: none;"
+  ></iframe>
+
   <script>
-    const LIFF_ID = "2010089876-qsjILd9E";
+    // ======================================
+    // Configuration
+    // ======================================
+
+    const LIFF_ID =
+      "2010089876-qsjILd9E";
+
+    const WEB_APP_URL =
+      "https://script.google.com/macros/s/AKfycbydVoWAsCrdAb4n6hKQErxU869TeUgMyuwqrTrBRycXdU0_oqlN0M8D_fSvFurTd9C1WQ/exec";
+
+    // ======================================
+    // State
+    // ======================================
 
     let lineUserId = "";
+    let lineIdToken = "";
+    let submitTimeout = null;
+    let isSubmitting = false;
+
+    // ======================================
+    // LIFF Initialization
+    // ======================================
 
     async function initializeLiff() {
       const button =
@@ -128,11 +171,18 @@
         document.getElementById("statusText");
 
       try {
+        statusText.className = "";
+        statusText.textContent =
+          "กำลังเชื่อมต่อกับ LINE...";
+
         await liff.init({
           liffId: LIFF_ID
         });
 
         if (!liff.isLoggedIn()) {
+          statusText.textContent =
+            "กำลังเข้าสู่ระบบ LINE...";
+
           liff.login();
           return;
         }
@@ -140,10 +190,14 @@
         statusText.textContent =
           "กำลังอ่านข้อมูลบัญชี LINE...";
 
-        const profile = await liff.getProfile();
+        const profile =
+          await liff.getProfile();
 
         lineUserId =
           String(profile.userId || "").trim();
+
+        lineIdToken =
+          String(liff.getIDToken() || "").trim();
 
         if (!lineUserId) {
           throw new Error(
@@ -151,12 +205,19 @@
           );
         }
 
+        if (!lineIdToken) {
+          throw new Error(
+            "ไม่สามารถอ่าน LINE ID Token ได้"
+          );
+        }
+
         button.disabled = false;
         button.textContent =
-          "เชื่อมต่อ LINE สำเร็จ";
+          "สมัครสมาชิก";
 
         statusText.textContent =
-          "พร้อมใช้งาน: " + profile.displayName;
+          "พร้อมใช้งาน: " +
+          (profile.displayName || "ผู้ใช้ LINE");
 
         statusText.className = "success";
 
@@ -173,6 +234,206 @@
         statusText.className = "error";
       }
     }
+
+    // ======================================
+    // Register
+    // ======================================
+
+    function saveData() {
+      if (isSubmitting) {
+        return;
+      }
+
+      if (!lineIdToken) {
+        alert(
+          "ระบบยังอ่านข้อมูล LINE ไม่สำเร็จ\n" +
+          "กรุณาปิดหน้านี้แล้วเปิดผ่าน LIFF ใหม่"
+        );
+        return;
+      }
+
+      const studentId =
+        document
+          .getElementById("studentId")
+          .value
+          .trim();
+
+      const name =
+        document
+          .getElementById("name")
+          .value
+          .trim();
+
+      const faculty =
+        document
+          .getElementById("faculty")
+          .value
+          .trim();
+
+      if (!studentId || !name || !faculty) {
+        alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
+        return;
+      }
+
+      if (!/^\d+$/.test(studentId)) {
+        alert(
+          "รหัสนักศึกษาต้องเป็นตัวเลขเท่านั้น"
+        );
+        return;
+      }
+
+      const button =
+        document.getElementById("registerButton");
+
+      const statusText =
+        document.getElementById("statusText");
+
+      isSubmitting = true;
+
+      button.disabled = true;
+      button.textContent =
+        "กำลังสมัคร...";
+
+      statusText.className = "";
+      statusText.textContent =
+        "กำลังตรวจสอบและบันทึกข้อมูลสมาชิก...";
+
+      // สร้าง Form สำหรับ POST ไป Apps Script
+      const form =
+        document.createElement("form");
+
+      form.method = "POST";
+      form.action = WEB_APP_URL;
+      form.target = "apiFrame";
+      form.style.display = "none";
+
+      const values = {
+        action: "register",
+        studentId: studentId,
+        name: name,
+        faculty: faculty,
+        idToken: lineIdToken
+      };
+
+      Object.keys(values).forEach(function(key) {
+        const input =
+          document.createElement("input");
+
+        input.type = "hidden";
+        input.name = key;
+        input.value = values[key];
+
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+
+      clearTimeout(submitTimeout);
+
+      submitTimeout = setTimeout(function() {
+        isSubmitting = false;
+
+        button.disabled = false;
+        button.textContent =
+          "สมัครสมาชิก";
+
+        statusText.textContent =
+          "ระบบตอบกลับช้ากว่าปกติ กรุณาลองใหม่";
+
+        statusText.className = "error";
+
+        if (form.isConnected) {
+          form.remove();
+        }
+      }, 20000);
+
+      form.submit();
+
+      // ลบ Form หลังส่งแล้ว
+      setTimeout(function() {
+        if (form.isConnected) {
+          form.remove();
+        }
+      }, 2000);
+    }
+
+    // ======================================
+    // รับผลลัพธ์จาก Apps Script
+    // ======================================
+
+    window.addEventListener(
+      "message",
+      function(event) {
+        const isGoogleOrigin =
+          event.origin ===
+            "https://script.google.com" ||
+          event.origin.endsWith(
+            ".googleusercontent.com"
+          );
+
+        if (!isGoogleOrigin) {
+          return;
+        }
+
+        const result = event.data;
+
+        if (
+          !result ||
+          result.source !== "shooting-club-api"
+        ) {
+          return;
+        }
+
+        clearTimeout(submitTimeout);
+        isSubmitting = false;
+
+        const button =
+          document.getElementById("registerButton");
+
+        const statusText =
+          document.getElementById("statusText");
+
+        alert(
+          result.message ||
+          "ระบบตอบกลับเรียบร้อย"
+        );
+
+        if (result.success) {
+          button.disabled = true;
+          button.textContent =
+            "สมัครสำเร็จ";
+
+          statusText.textContent =
+            "สมัครสมาชิกสำเร็จ";
+
+          statusText.className =
+            "success";
+
+          if (liff.isInClient()) {
+            setTimeout(function() {
+              liff.closeWindow();
+            }, 800);
+          }
+
+          return;
+        }
+
+        button.disabled = false;
+        button.textContent =
+          "สมัครสมาชิก";
+
+        statusText.textContent =
+          result.message ||
+          "สมัครสมาชิกไม่สำเร็จ";
+
+        statusText.className =
+          "error";
+      }
+    );
+
+    // ======================================
+    // Start
+    // ======================================
 
     window.addEventListener(
       "load",
