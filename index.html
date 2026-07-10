@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>สมัครสมาชิกชมรมยิงปืน</title>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 420px;
+      margin: auto;
+      padding: 24px;
+      background: #f5f5f5;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 24px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      margin-bottom: 12px;
+      border: 1px solid #cccccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: 0;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #statusText {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+      color: #666666;
+    }
+
+    .success {
+      color: #16863a !important;
+    }
+
+    .error {
+      color: #c62828 !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+    <h2>สมัครสมาชิกชมรมยิงปืน</h2>
+
+    <input
+      id="studentId"
+      type="text"
+      inputmode="numeric"
+      placeholder="รหัสนักศึกษา"
+    >
+
+    <input
+      id="name"
+      type="text"
+      placeholder="ชื่อ - นามสกุล"
+    >
+
+    <input
+      id="faculty"
+      type="text"
+      placeholder="คณะ"
+    >
+
+    <button
+      id="registerButton"
+      type="button"
+      disabled
+    >
+      กำลังเชื่อมต่อ LINE...
+    </button>
+
+    <div id="statusText">
+      กำลังเริ่มต้นระบบ LINE...
+    </div>
+  </div>
+
+  <script>
+    const LIFF_ID = "2010089876-qsjILd9E";
+
+    let lineUserId = "";
+
+    async function initializeLiff() {
+      const button =
+        document.getElementById("registerButton");
+
+      const statusText =
+        document.getElementById("statusText");
+
+      try {
+        await liff.init({
+          liffId: LIFF_ID
+        });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        statusText.textContent =
+          "กำลังอ่านข้อมูลบัญชี LINE...";
+
+        const profile = await liff.getProfile();
+
+        lineUserId =
+          String(profile.userId || "").trim();
+
+        if (!lineUserId) {
+          throw new Error(
+            "ไม่สามารถอ่าน LINE User ID ได้"
+          );
+        }
+
+        button.disabled = false;
+        button.textContent =
+          "เชื่อมต่อ LINE สำเร็จ";
+
+        statusText.textContent =
+          "พร้อมใช้งาน: " + profile.displayName;
+
+        statusText.className = "success";
+
+      } catch (error) {
+        console.error(error);
+
+        button.disabled = true;
+        button.textContent =
+          "เชื่อมต่อ LINE ไม่สำเร็จ";
+
+        statusText.textContent =
+          error.message || "เกิดข้อผิดพลาด";
+
+        statusText.className = "error";
+      }
+    }
+
+    window.addEventListener(
+      "load",
+      initializeLiff
+    );
+  </script>
+
+</body>
+</html>
