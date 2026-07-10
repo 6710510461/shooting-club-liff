@@ -10,7 +10,6 @@
 
   <title>สมัครสมาชิกชมรมยิงปืน</title>
 
-  <!-- LINE LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
@@ -28,29 +27,40 @@
     }
 
     .card {
-      background: #ffffff;
       padding: 24px;
+      background: #ffffff;
       border-radius: 16px;
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
     }
 
     h2 {
       margin-top: 0;
-      margin-bottom: 24px;
+      margin-bottom: 8px;
       text-align: center;
     }
 
-    input {
+    .subtitle {
+      margin-top: 0;
+      margin-bottom: 22px;
+      text-align: center;
+      color: #666666;
+      font-size: 14px;
+    }
+
+    input,
+    select {
       width: 100%;
       padding: 13px;
       margin-bottom: 12px;
       border: 1px solid #cccccc;
       border-radius: 8px;
+      background: #ffffff;
       font-size: 16px;
     }
 
-    input:focus {
-      border-color: #555555;
+    input:focus,
+    select:focus {
+      border-color: #333333;
       outline: none;
     }
 
@@ -59,10 +69,10 @@
       padding: 14px;
       border: 0;
       border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
       background: #222222;
       color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
     }
 
     button:disabled {
@@ -73,8 +83,8 @@
     #statusText {
       margin-top: 16px;
       text-align: center;
-      font-size: 14px;
       color: #666666;
+      font-size: 14px;
       white-space: pre-line;
     }
 
@@ -94,8 +104,12 @@
 
     <h2>สมัครสมาชิกชมรมยิงปืน</h2>
 
+    <p class="subtitle">
+      สำหรับนักศึกษา
+    </p>
+
     <input
-      id="studentId"
+      id="universityId"
       type="text"
       inputmode="numeric"
       maxlength="20"
@@ -109,12 +123,79 @@
       placeholder="ชื่อ - นามสกุล"
     >
 
-    <input
-      id="faculty"
-      type="text"
-      maxlength="100"
-      placeholder="คณะ"
-    >
+    <select id="facultyOrUnit">
+      <option value="">
+        กรุณาเลือกคณะหรือวิทยาลัย
+      </option>
+
+      <option value="คณะแพทยศาสตร์">
+        คณะแพทยศาสตร์
+      </option>
+
+      <option value="คณะทันตแพทยศาสตร์">
+        คณะทันตแพทยศาสตร์
+      </option>
+
+      <option value="คณะเภสัชศาสตร์">
+        คณะเภสัชศาสตร์
+      </option>
+
+      <option value="คณะพยาบาลศาสตร์">
+        คณะพยาบาลศาสตร์
+      </option>
+
+      <option value="คณะเทคนิคการแพทย์">
+        คณะเทคนิคการแพทย์
+      </option>
+
+      <option value="คณะการแพทย์แผนไทย">
+        คณะการแพทย์แผนไทย
+      </option>
+
+      <option value="คณะวิศวกรรมศาสตร์">
+        คณะวิศวกรรมศาสตร์
+      </option>
+
+      <option value="คณะวิทยาศาสตร์">
+        คณะวิทยาศาสตร์
+      </option>
+
+      <option value="คณะทรัพยากรธรรมชาติ">
+        คณะทรัพยากรธรรมชาติ
+      </option>
+
+      <option value="คณะอุตสาหกรรมเกษตร">
+        คณะอุตสาหกรรมเกษตร
+      </option>
+
+      <option value="คณะสัตวแพทยศาสตร์">
+        คณะสัตวแพทยศาสตร์
+      </option>
+
+      <option value="คณะวิทยาการจัดการ">
+        คณะวิทยาการจัดการ
+      </option>
+
+      <option value="คณะศิลปศาสตร์">
+        คณะศิลปศาสตร์
+      </option>
+
+      <option value="คณะนิติศาสตร์">
+        คณะนิติศาสตร์
+      </option>
+
+      <option value="คณะเศรษฐศาสตร์">
+        คณะเศรษฐศาสตร์
+      </option>
+
+      <option value="วิทยาลัยนานาชาติ">
+        วิทยาลัยนานาชาติ
+      </option>
+
+      <option value="บัณฑิตวิทยาลัย">
+        บัณฑิตวิทยาลัย
+      </option>
+    </select>
 
     <button
       id="registerButton"
@@ -131,7 +212,6 @@
 
   </div>
 
-  <!-- รับผลลัพธ์จาก Apps Script แบบซ่อน -->
   <iframe
     id="apiFrame"
     name="apiFrame"
@@ -140,28 +220,17 @@
   ></iframe>
 
   <script>
-    // ======================================
-    // Configuration
-    // ======================================
-
     const LIFF_ID =
       "2010089876-qsjILd9E";
 
     const WEB_APP_URL =
       "https://script.google.com/macros/s/AKfycbydVoWAsCrdAb4n6hKQErxU869TeUgMyuwqrTrBRycXdU0_oqlN0M8D_fSvFurTd9C1WQ/exec";
 
-    // ======================================
-    // State
-    // ======================================
+    const MEMBER_TYPE = "Student";
 
-    let lineUserId = "";
     let lineIdToken = "";
     let submitTimeout = null;
     let isSubmitting = false;
-
-    // ======================================
-    // LIFF Initialization
-    // ======================================
 
     async function initializeLiff() {
       const button =
@@ -193,27 +262,17 @@
         const profile =
           await liff.getProfile();
 
-        lineUserId =
-          String(profile.userId || "").trim();
-
         lineIdToken =
           String(liff.getIDToken() || "").trim();
 
-        if (!lineUserId) {
+        if (!profile.userId || !lineIdToken) {
           throw new Error(
-            "ไม่สามารถอ่าน LINE User ID ได้"
-          );
-        }
-
-        if (!lineIdToken) {
-          throw new Error(
-            "ไม่สามารถอ่าน LINE ID Token ได้"
+            "ไม่สามารถอ่านข้อมูลบัญชี LINE ได้"
           );
         }
 
         button.disabled = false;
-        button.textContent =
-          "สมัครสมาชิก";
+        button.textContent = "สมัครสมาชิก";
 
         statusText.textContent =
           "พร้อมใช้งาน: " +
@@ -235,10 +294,6 @@
       }
     }
 
-    // ======================================
-    // Register
-    // ======================================
-
     function saveData() {
       if (isSubmitting) {
         return;
@@ -252,9 +307,9 @@
         return;
       }
 
-      const studentId =
+      const universityId =
         document
-          .getElementById("studentId")
+          .getElementById("universityId")
           .value
           .trim();
 
@@ -264,18 +319,22 @@
           .value
           .trim();
 
-      const faculty =
+      const facultyOrUnit =
         document
-          .getElementById("faculty")
+          .getElementById("facultyOrUnit")
           .value
           .trim();
 
-      if (!studentId || !name || !faculty) {
+      if (
+        !universityId ||
+        !name ||
+        !facultyOrUnit
+      ) {
         alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
         return;
       }
 
-      if (!/^\d+$/.test(studentId)) {
+      if (!/^\d+$/.test(universityId)) {
         alert(
           "รหัสนักศึกษาต้องเป็นตัวเลขเท่านั้น"
         );
@@ -291,14 +350,12 @@
       isSubmitting = true;
 
       button.disabled = true;
-      button.textContent =
-        "กำลังสมัคร...";
+      button.textContent = "กำลังสมัคร...";
 
       statusText.className = "";
       statusText.textContent =
         "กำลังตรวจสอบและบันทึกข้อมูลสมาชิก...";
 
-      // สร้าง Form สำหรับ POST ไป Apps Script
       const form =
         document.createElement("form");
 
@@ -309,9 +366,10 @@
 
       const values = {
         action: "register",
-        studentId: studentId,
+        universityId: universityId,
         name: name,
-        faculty: faculty,
+        facultyOrUnit: facultyOrUnit,
+        memberType: MEMBER_TYPE,
         idToken: lineIdToken
       };
 
@@ -334,8 +392,7 @@
         isSubmitting = false;
 
         button.disabled = false;
-        button.textContent =
-          "สมัครสมาชิก";
+        button.textContent = "สมัครสมาชิก";
 
         statusText.textContent =
           "ระบบตอบกลับช้ากว่าปกติ กรุณาลองใหม่";
@@ -349,17 +406,12 @@
 
       form.submit();
 
-      // ลบ Form หลังส่งแล้ว
       setTimeout(function() {
         if (form.isConnected) {
           form.remove();
         }
       }, 2000);
     }
-
-    // ======================================
-    // รับผลลัพธ์จาก Apps Script
-    // ======================================
 
     window.addEventListener(
       "message",
@@ -400,14 +452,12 @@
 
         if (result.success) {
           button.disabled = true;
-          button.textContent =
-            "สมัครสำเร็จ";
+          button.textContent = "สมัครสำเร็จ";
 
           statusText.textContent =
             "สมัครสมาชิกสำเร็จ";
 
-          statusText.className =
-            "success";
+          statusText.className = "success";
 
           if (liff.isInClient()) {
             setTimeout(function() {
@@ -419,21 +469,15 @@
         }
 
         button.disabled = false;
-        button.textContent =
-          "สมัครสมาชิก";
+        button.textContent = "สมัครสมาชิก";
 
         statusText.textContent =
           result.message ||
           "สมัครสมาชิกไม่สำเร็จ";
 
-        statusText.className =
-          "error";
+        statusText.className = "error";
       }
     );
-
-    // ======================================
-    // Start
-    // ======================================
 
     window.addEventListener(
       "load",
