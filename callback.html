@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Processing</title>
+</head>
+
+<body>
+  <script>
+    const params =
+      new URLSearchParams(window.location.search);
+
+    const result = {
+      source: "shooting-club-api",
+      success:
+        params.get("success") === "true",
+      message:
+        params.get("message") ||
+        "ระบบตอบกลับเรียบร้อย"
+    };
+
+    if (window.parent) {
+      window.parent.postMessage(
+        result,
+        "https://6710510461.github.io"
+      );
+    }
+  </script>
+</body>
+</html>
