@@ -299,13 +299,34 @@
         return;
       }
 
-      if (!lineIdToken) {
-        alert(
-          "ระบบยังอ่านข้อมูล LINE ไม่สำเร็จ\n" +
-          "กรุณาปิดหน้านี้แล้วเปิดผ่าน LIFF ใหม่"
-        );
-        return;
-      }
+    const currentIdToken =
+      String(liff.getIDToken() || "").trim();
+
+    const decodedToken =
+      liff.getDecodedIDToken();
+
+    const currentTime =
+      Math.floor(Date.now() / 1000);
+
+    if (
+      !currentIdToken ||
+      !decodedToken ||
+      !decodedToken.exp ||
+      decodedToken.exp <= currentTime
+  ) {
+      alert(
+        "ข้อมูลเข้าสู่ระบบ LINE หมดอายุแล้ว\n" +
+        "กรุณาปิดหน้านี้แล้วเปิดใหม่อีกครั้ง"
+  );
+
+      if (liff.isInClient()) {
+          liff.closeWindow();
+  }
+
+      return;
+  }
+
+lineIdToken = currentIdToken;
 
       const universityId =
         document
