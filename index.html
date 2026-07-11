@@ -231,7 +231,9 @@
     let lineIdToken = "";
     let submitTimeout = null;
     let isSubmitting = false;
-
+    let resultPollTimer = null;
+    let currentRequestId = "";
+    
     async function initializeLiff() {
       const button =
         document.getElementById("registerButton");
@@ -295,208 +297,252 @@
     }
 
     function saveData() {
-      if (isSubmitting) {
-        return;
-      }
+  if (isSubmitting) {
+    return;
+  }
 
-    const currentIdToken =
-      String(liff.getIDToken() || "").trim();
+  const currentIdToken =
+    String(liff.getIDToken() || "").trim();
 
-    const decodedToken =
-      liff.getDecodedIDToken();
+  const decodedToken =
+    liff.getDecodedIDToken();
 
-    const currentTime =
-      Math.floor(Date.now() / 1000);
+  const currentTime =
+    Math.floor(Date.now() / 1000);
 
-    if (
-      !currentIdToken ||
-      !decodedToken ||
-      !decodedToken.exp ||
-      decodedToken.exp <= currentTime
+  if (
+    !currentIdToken ||
+    !decodedToken ||
+    !decodedToken.exp ||
+    decodedToken.exp <= currentTime
   ) {
-      alert(
-        "ข้อมูลเข้าสู่ระบบ LINE หมดอายุแล้ว\n" +
-        "กรุณาปิดหน้านี้แล้วเปิดใหม่อีกครั้ง"
-  );
-
-      if (liff.isInClient()) {
-          liff.closeWindow();
-  }
-
-      return;
-  }
-
-lineIdToken = currentIdToken;
-
-      const universityId =
-        document
-          .getElementById("universityId")
-          .value
-          .trim();
-
-      const name =
-        document
-          .getElementById("name")
-          .value
-          .trim();
-
-      const facultyOrUnit =
-        document
-          .getElementById("facultyOrUnit")
-          .value
-          .trim();
-
-      if (
-        !universityId ||
-        !name ||
-        !facultyOrUnit
-      ) {
-        alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
-        return;
-      }
-
-      if (!/^\d+$/.test(universityId)) {
-        alert(
-          "รหัสนักศึกษาต้องเป็นตัวเลขเท่านั้น"
-        );
-        return;
-      }
-
-      const button =
-        document.getElementById("registerButton");
-
-      const statusText =
-        document.getElementById("statusText");
-
-      isSubmitting = true;
-
-      button.disabled = true;
-      button.textContent = "กำลังสมัคร...";
-
-      statusText.className = "";
-      statusText.textContent =
-        "กำลังตรวจสอบและบันทึกข้อมูลสมาชิก...";
-
-      const form =
-        document.createElement("form");
-
-      form.method = "POST";
-      form.action = WEB_APP_URL;
-      form.target = "apiFrame";
-      form.style.display = "none";
-
-      const values = {
-        action: "register",
-        universityId: universityId,
-        name: name,
-        facultyOrUnit: facultyOrUnit,
-        memberType: MEMBER_TYPE,
-        idToken: lineIdToken
-      };
-
-      Object.keys(values).forEach(function(key) {
-        const input =
-          document.createElement("input");
-
-        input.type = "hidden";
-        input.name = key;
-        input.value = values[key];
-
-        form.appendChild(input);
-      });
-
-      document.body.appendChild(form);
-
-      clearTimeout(submitTimeout);
-
-      submitTimeout = setTimeout(function() {
-        isSubmitting = false;
-
-        button.disabled = false;
-        button.textContent = "สมัครสมาชิก";
-
-        statusText.textContent =
-          "ระบบตอบกลับช้ากว่าปกติ กรุณาลองใหม่";
-
-        statusText.className = "error";
-
-        if (form.isConnected) {
-          form.remove();
-        }
-      }, 20000);
-
-      form.submit();
-
-      setTimeout(function() {
-        if (form.isConnected) {
-          form.remove();
-        }
-      }, 2000);
-    }
-
-    window.addEventListener(
-      "message",
-      function(event) {
-        const isAllowedOrigin =
-          event.origin ===
-          "https://6710510461.github.io";
-
-        if (!isAllowedOrigin) {
-          return;
-        }
-
-        const result = event.data;
-
-        if (
-          !result ||
-          result.source !== "shooting-club-api"
-        ) {
-          return;
-        }
-
-        clearTimeout(submitTimeout);
-        isSubmitting = false;
-
-        const button =
-          document.getElementById("registerButton");
-
-        const statusText =
-          document.getElementById("statusText");
-
-        alert(
-          result.message ||
-          "ระบบตอบกลับเรียบร้อย"
-        );
-
-        if (result.success) {
-          button.disabled = true;
-          button.textContent = "สมัครสำเร็จ";
-
-          statusText.textContent =
-            "สมัครสมาชิกสำเร็จ";
-
-          statusText.className = "success";
-
-          if (liff.isInClient()) {
-            setTimeout(function() {
-              liff.closeWindow();
-            }, 800);
-          }
-
-          return;
-        }
-
-        button.disabled = false;
-        button.textContent = "สมัครสมาชิก";
-
-        statusText.textContent =
-          result.message ||
-          "สมัครสมาชิกไม่สำเร็จ";
-
-        statusText.className = "error";
-      }
+    alert(
+      "ข้อมูลเข้าสู่ระบบ LINE หมดอายุแล้ว\n" +
+      "กรุณาปิดหน้านี้แล้วเปิดใหม่อีกครั้ง"
     );
 
+    if (liff.isInClient()) {
+      liff.closeWindow();
+    }
+
+    return;
+  }
+
+  lineIdToken = currentIdToken;
+
+  const universityId =
+    document
+      .getElementById("universityId")
+      .value
+      .trim();
+
+  const name =
+    document
+      .getElementById("name")
+      .value
+      .trim();
+
+  const facultyOrUnit =
+    document
+      .getElementById("facultyOrUnit")
+      .value
+      .trim();
+
+  if (
+    !universityId ||
+    !name ||
+    !facultyOrUnit
+  ) {
+    alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
+    return;
+  }
+
+  if (!/^\d+$/.test(universityId)) {
+    alert("รหัสนักศึกษาต้องเป็นตัวเลขเท่านั้น");
+    return;
+  }
+
+  const button =
+    document.getElementById("registerButton");
+
+  const statusText =
+    document.getElementById("statusText");
+
+  isSubmitting = true;
+
+  button.disabled = true;
+  button.textContent = "กำลังสมัคร...";
+
+  statusText.className = "";
+  statusText.textContent =
+    "กำลังตรวจสอบและบันทึกข้อมูลสมาชิก...";
+
+  currentRequestId =
+    "req_" +
+    Date.now() +
+    "_" +
+    Math.random().toString(36).slice(2);
+
+  const form =
+    document.createElement("form");
+
+  form.method = "POST";
+  form.action = WEB_APP_URL;
+  form.target = "apiFrame";
+  form.style.display = "none";
+
+  const values = {
+    action: "register",
+    requestId: currentRequestId,
+    universityId: universityId,
+    name: name,
+    facultyOrUnit: facultyOrUnit,
+    memberType: MEMBER_TYPE,
+    idToken: lineIdToken
+  };
+
+  Object.keys(values).forEach(function(key) {
+    const input =
+      document.createElement("input");
+
+    input.type = "hidden";
+    input.name = key;
+    input.value = values[key];
+
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+
+  form.submit();
+
+  startResultPolling(currentRequestId);
+
+  setTimeout(function() {
+    if (form.isConnected) {
+      form.remove();
+    }
+  }, 2000);
+}
+    
+function startResultPolling(requestId) {
+  const startedAt = Date.now();
+
+  function poll() {
+    if (Date.now() - startedAt > 25000) {
+      handleRegisterTimeout();
+      return;
+    }
+
+    const script =
+      document.createElement("script");
+
+    script.src =
+      WEB_APP_URL +
+      "?action=registerResult" +
+      "&requestId=" +
+      encodeURIComponent(requestId) +
+      "&callback=registerResultCallback" +
+      "&_=" +
+      Date.now();
+
+    script.onerror = function() {
+      script.remove();
+
+      resultPollTimer =
+        setTimeout(poll, 1000);
+    };
+
+    document.body.appendChild(script);
+
+    setTimeout(function() {
+      if (script.isConnected) {
+        script.remove();
+      }
+    }, 3000);
+  }
+
+  window.registerResultCallback =
+    function(result) {
+      if (!result || !result.ready) {
+        resultPollTimer =
+          setTimeout(poll, 1000);
+
+        return;
+      }
+
+      handleRegisterResult(result);
+    };
+
+  poll();
+}
+
+
+function handleRegisterResult(result) {
+  clearTimeout(resultPollTimer);
+
+  isSubmitting = false;
+
+  const button =
+    document.getElementById("registerButton");
+
+  const statusText =
+    document.getElementById("statusText");
+
+  alert(
+    result.message ||
+    "ระบบตอบกลับเรียบร้อย"
+  );
+
+  if (result.success) {
+    button.disabled = true;
+    button.textContent = "สมัครสำเร็จ";
+
+    statusText.textContent =
+      "สมัครสมาชิกสำเร็จ";
+
+    statusText.className =
+      "success";
+
+    if (liff.isInClient()) {
+      setTimeout(function() {
+        liff.closeWindow();
+      }, 800);
+    }
+
+    return;
+  }
+
+  button.disabled = false;
+  button.textContent = "สมัครสมาชิก";
+
+  statusText.textContent =
+    result.message ||
+    "สมัครสมาชิกไม่สำเร็จ";
+
+  statusText.className = "error";
+}
+
+
+function handleRegisterTimeout() {
+  clearTimeout(resultPollTimer);
+
+  isSubmitting = false;
+
+  const button =
+    document.getElementById("registerButton");
+
+  const statusText =
+    document.getElementById("statusText");
+
+  button.disabled = false;
+  button.textContent = "สมัครสมาชิก";
+
+  statusText.textContent =
+    "ไม่สามารถตรวจสอบผลการสมัครได้ กรุณาตรวจสอบข้อมูลในระบบ";
+
+  statusText.className = "error";
+}
     window.addEventListener(
       "load",
       initializeLiff
