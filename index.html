@@ -437,14 +437,11 @@ lineIdToken = currentIdToken;
     window.addEventListener(
       "message",
       function(event) {
-        const isGoogleOrigin =
+        const isAllowedOrigin =
           event.origin ===
-            "https://script.google.com" ||
-          event.origin.endsWith(
-            ".googleusercontent.com"
-          );
+          "https://6710510461.github.io";
 
-        if (!isGoogleOrigin) {
+        if (!isAllowedOrigin) {
           return;
         }
 
