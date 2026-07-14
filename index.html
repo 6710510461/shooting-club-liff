@@ -41,10 +41,30 @@
 
     .subtitle {
       margin-top: 0;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
       text-align: center;
       color: #666666;
       font-size: 14px;
+    }
+
+    .member-type {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .type-button {
+      padding: 12px;
+      border: 1px solid #cccccc;
+      background: #eeeeee;
+      color: #222222;
+    }
+
+    .type-button.active {
+      border-color: #222222;
+      background: #222222;
+      color: #ffffff;
     }
 
     input,
@@ -64,7 +84,7 @@
       outline: none;
     }
 
-    button {
+    #registerButton {
       width: 100%;
       padding: 14px;
       border: 0;
@@ -105,8 +125,28 @@
     <h2>สมัครสมาชิกชมรมยิงปืน</h2>
 
     <p class="subtitle">
-      สำหรับนักศึกษา
+      กรุณาเลือกประเภทสมาชิกและกรอกข้อมูล
     </p>
+
+    <div class="member-type">
+      <button
+        id="studentTypeButton"
+        type="button"
+        class="type-button active"
+        onclick="selectMemberType('Student')"
+      >
+        นักศึกษา
+      </button>
+
+      <button
+        id="personnelTypeButton"
+        type="button"
+        class="type-button"
+        onclick="selectMemberType('Personnel')"
+      >
+        บุคลากร
+      </button>
+    </div>
 
     <input
       id="universityId"
@@ -123,79 +163,7 @@
       placeholder="ชื่อ - นามสกุล"
     >
 
-    <select id="facultyOrUnit">
-      <option value="">
-        กรุณาเลือกคณะหรือวิทยาลัย
-      </option>
-
-      <option value="คณะแพทยศาสตร์">
-        คณะแพทยศาสตร์
-      </option>
-
-      <option value="คณะทันตแพทยศาสตร์">
-        คณะทันตแพทยศาสตร์
-      </option>
-
-      <option value="คณะเภสัชศาสตร์">
-        คณะเภสัชศาสตร์
-      </option>
-
-      <option value="คณะพยาบาลศาสตร์">
-        คณะพยาบาลศาสตร์
-      </option>
-
-      <option value="คณะเทคนิคการแพทย์">
-        คณะเทคนิคการแพทย์
-      </option>
-
-      <option value="คณะการแพทย์แผนไทย">
-        คณะการแพทย์แผนไทย
-      </option>
-
-      <option value="คณะวิศวกรรมศาสตร์">
-        คณะวิศวกรรมศาสตร์
-      </option>
-
-      <option value="คณะวิทยาศาสตร์">
-        คณะวิทยาศาสตร์
-      </option>
-
-      <option value="คณะทรัพยากรธรรมชาติ">
-        คณะทรัพยากรธรรมชาติ
-      </option>
-
-      <option value="คณะอุตสาหกรรมเกษตร">
-        คณะอุตสาหกรรมเกษตร
-      </option>
-
-      <option value="คณะสัตวแพทยศาสตร์">
-        คณะสัตวแพทยศาสตร์
-      </option>
-
-      <option value="คณะวิทยาการจัดการ">
-        คณะวิทยาการจัดการ
-      </option>
-
-      <option value="คณะศิลปศาสตร์">
-        คณะศิลปศาสตร์
-      </option>
-
-      <option value="คณะนิติศาสตร์">
-        คณะนิติศาสตร์
-      </option>
-
-      <option value="คณะเศรษฐศาสตร์">
-        คณะเศรษฐศาสตร์
-      </option>
-
-      <option value="วิทยาลัยนานาชาติ">
-        วิทยาลัยนานาชาติ
-      </option>
-
-      <option value="บัณฑิตวิทยาลัย">
-        บัณฑิตวิทยาลัย
-      </option>
-    </select>
+    <select id="facultyOrUnit"></select>
 
     <button
       id="registerButton"
@@ -226,14 +194,193 @@
     const WEB_APP_URL =
       "https://script.google.com/macros/s/AKfycbydVoWAsCrdAb4n6hKQErxU869TeUgMyuwqrTrBRycXdU0_oqlN0M8D_fSvFurTd9C1WQ/exec";
 
-    const MEMBER_TYPE = "Student";
+    const STUDENT_AFFILIATIONS = [
+      "คณะแพทยศาสตร์",
+      "คณะทันตแพทยศาสตร์",
+      "คณะเภสัชศาสตร์",
+      "คณะพยาบาลศาสตร์",
+      "คณะเทคนิคการแพทย์",
+      "คณะการแพทย์แผนไทย",
+      "คณะวิศวกรรมศาสตร์",
+      "คณะวิทยาศาสตร์",
+      "คณะทรัพยากรธรรมชาติ",
+      "คณะอุตสาหกรรมเกษตร",
+      "คณะสัตวแพทยศาสตร์",
+      "คณะวิทยาการจัดการ",
+      "คณะศิลปศาสตร์",
+      "คณะนิติศาสตร์",
+      "คณะเศรษฐศาสตร์",
+      "วิทยาลัยนานาชาติ",
+      "บัณฑิตวิทยาลัย"
+    ];
 
+    const PERSONNEL_GROUPS = [
+      {
+        label: "ส่วนงานนโยบายและบริหารกลาง",
+        items: [
+          "สำนักงานอธิการบดี",
+          "กองกลาง",
+          "กองคลัง",
+          "กองนโยบาย ยุทธศาสตร์ และแผน",
+          "กองบริหารทรัพยากรบุคคล",
+          "ศูนย์กิจการนานาชาติและสื่อสารองค์กร",
+          "ศูนย์บริหารจัดการคุณภาพองค์กร",
+          "สำนักกฎหมาย",
+          "หอประวัติ ม.อ."
+        ]
+      },
+      {
+        label: "คณะและส่วนงานจัดการศึกษา",
+        items: [
+          "คณะวิศวกรรมศาสตร์",
+          "คณะวิทยาศาสตร์",
+          "คณะแพทยศาสตร์",
+          "คณะพยาบาลศาสตร์",
+          "คณะวิทยาการจัดการ",
+          "คณะทรัพยากรธรรมชาติ",
+          "คณะเภสัชศาสตร์",
+          "คณะทันตแพทยศาสตร์",
+          "คณะอุตสาหกรรมเกษตร",
+          "คณะศิลปศาสตร์",
+          "คณะนิติศาสตร์",
+          "คณะเทคนิคการแพทย์",
+          "คณะสัตวแพทยศาสตร์",
+          "คณะการจัดการสิ่งแวดล้อม",
+          "คณะการแพทย์แผนไทย",
+          "คณะเศรษฐศาสตร์",
+          "วิทยาลัยนานาชาติ วิทยาเขตหาดใหญ่",
+          "บัณฑิตวิทยาลัย"
+        ]
+      },
+      {
+        label: "ส่วนงานสนับสนุน บริการวิชาการ และสถาบันวิจัย",
+        items: [
+          "สำนักนวัตกรรมดิจิทัลและระบบอัจฉริยะ",
+          "สำนักทรัพยากรการเรียนรู้คุณหญิงหลง อรรถกระวีสุนทร",
+          "สำนักวิจัยและพัฒนา",
+          "สถาบันทรัพยากรมนุษย์",
+          "สถาบันสันติศึกษา",
+          "สถาบันนโยบายสาธารณะ",
+          "สถาบันฮาลาล"
+        ]
+      }
+    ];
+
+    let memberType = "Student";
     let lineIdToken = "";
-    let submitTimeout = null;
     let isSubmitting = false;
     let resultPollTimer = null;
     let currentRequestId = "";
-    
+
+    function selectMemberType(type) {
+      memberType = type;
+
+      const studentButton =
+        document.getElementById("studentTypeButton");
+
+      const personnelButton =
+        document.getElementById("personnelTypeButton");
+
+      const universityId =
+        document.getElementById("universityId");
+
+      if (type === "Student") {
+        studentButton.classList.add("active");
+        personnelButton.classList.remove("active");
+
+        universityId.placeholder =
+          "รหัสนักศึกษา";
+
+        universityId.inputMode =
+          "numeric";
+
+        renderStudentAffiliations();
+
+      } else {
+        personnelButton.classList.add("active");
+        studentButton.classList.remove("active");
+
+        universityId.placeholder =
+          "รหัสบุคลากร";
+
+        universityId.inputMode =
+          "text";
+
+        renderPersonnelAffiliations();
+      }
+    }
+
+    function clearAffiliationSelect() {
+      const select =
+        document.getElementById("facultyOrUnit");
+
+      select.innerHTML = "";
+
+      return select;
+    }
+
+    function createOption(value, text) {
+      const option =
+        document.createElement("option");
+
+      option.value = value;
+      option.textContent = text;
+
+      return option;
+    }
+
+    function renderStudentAffiliations() {
+      const select =
+        clearAffiliationSelect();
+
+      select.appendChild(
+        createOption(
+          "",
+          "กรุณาเลือกคณะหรือวิทยาลัย"
+        )
+      );
+
+      STUDENT_AFFILIATIONS.forEach(
+        function(item) {
+          select.appendChild(
+            createOption(item, item)
+          );
+        }
+      );
+    }
+
+    function renderPersonnelAffiliations() {
+      const select =
+        clearAffiliationSelect();
+
+      select.appendChild(
+        createOption(
+          "",
+          "กรุณาเลือกส่วนงานหรือหน่วยงาน"
+        )
+      );
+
+      PERSONNEL_GROUPS.forEach(
+        function(group) {
+          const optgroup =
+            document.createElement("optgroup");
+
+          optgroup.label =
+            group.label;
+
+          group.items.forEach(
+            function(item) {
+              optgroup.appendChild(
+                createOption(item, item)
+              );
+            }
+          );
+
+          select.appendChild(optgroup);
+        }
+      );
+    }
+
     async function initializeLiff() {
       const button =
         document.getElementById("registerButton");
@@ -251,15 +398,9 @@
         });
 
         if (!liff.isLoggedIn()) {
-          statusText.textContent =
-            "กำลังเข้าสู่ระบบ LINE...";
-
           liff.login();
           return;
         }
-
-        statusText.textContent =
-          "กำลังอ่านข้อมูลบัญชี LINE...";
 
         const profile =
           await liff.getProfile();
@@ -274,13 +415,15 @@
         }
 
         button.disabled = false;
-        button.textContent = "สมัครสมาชิก";
+        button.textContent =
+          "สมัครสมาชิก";
 
         statusText.textContent =
           "พร้อมใช้งาน: " +
           (profile.displayName || "ผู้ใช้ LINE");
 
-        statusText.className = "success";
+        statusText.className =
+          "success";
 
       } catch (error) {
         console.error(error);
@@ -292,260 +435,295 @@
         statusText.textContent =
           error.message || "เกิดข้อผิดพลาด";
 
-        statusText.className = "error";
+        statusText.className =
+          "error";
       }
     }
 
     function saveData() {
-  if (isSubmitting) {
-    return;
-  }
-
-  const currentIdToken =
-    String(liff.getIDToken() || "").trim();
-
-  const decodedToken =
-    liff.getDecodedIDToken();
-
-  const currentTime =
-    Math.floor(Date.now() / 1000);
-
-  if (
-    !currentIdToken ||
-    !decodedToken ||
-    !decodedToken.exp ||
-    decodedToken.exp <= currentTime
-  ) {
-    alert(
-      "ข้อมูลเข้าสู่ระบบ LINE หมดอายุแล้ว\n" +
-      "กรุณาปิดหน้านี้แล้วเปิดใหม่อีกครั้ง"
-    );
-
-    if (liff.isInClient()) {
-      liff.closeWindow();
-    }
-
-    return;
-  }
-
-  lineIdToken = currentIdToken;
-
-  const universityId =
-    document
-      .getElementById("universityId")
-      .value
-      .trim();
-
-  const name =
-    document
-      .getElementById("name")
-      .value
-      .trim();
-
-  const facultyOrUnit =
-    document
-      .getElementById("facultyOrUnit")
-      .value
-      .trim();
-
-  if (
-    !universityId ||
-    !name ||
-    !facultyOrUnit
-  ) {
-    alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
-    return;
-  }
-
-  if (!/^\d+$/.test(universityId)) {
-    alert("รหัสนักศึกษาต้องเป็นตัวเลขเท่านั้น");
-    return;
-  }
-
-  const button =
-    document.getElementById("registerButton");
-
-  const statusText =
-    document.getElementById("statusText");
-
-  isSubmitting = true;
-
-  button.disabled = true;
-  button.textContent = "กำลังสมัคร...";
-
-  statusText.className = "";
-  statusText.textContent =
-    "กำลังตรวจสอบและบันทึกข้อมูลสมาชิก...";
-
-  currentRequestId =
-    "req_" +
-    Date.now() +
-    "_" +
-    Math.random().toString(36).slice(2);
-
-  const form =
-    document.createElement("form");
-
-  form.method = "POST";
-  form.action = WEB_APP_URL;
-  form.target = "apiFrame";
-  form.style.display = "none";
-
-  const values = {
-    action: "register",
-    requestId: currentRequestId,
-    universityId: universityId,
-    name: name,
-    facultyOrUnit: facultyOrUnit,
-    memberType: MEMBER_TYPE,
-    idToken: lineIdToken
-  };
-
-  Object.keys(values).forEach(function(key) {
-    const input =
-      document.createElement("input");
-
-    input.type = "hidden";
-    input.name = key;
-    input.value = values[key];
-
-    form.appendChild(input);
-  });
-
-  document.body.appendChild(form);
-
-  form.submit();
-
-  startResultPolling(currentRequestId);
-
-  setTimeout(function() {
-    if (form.isConnected) {
-      form.remove();
-    }
-  }, 2000);
-}
-    
-function startResultPolling(requestId) {
-  const startedAt = Date.now();
-
-  function poll() {
-    if (Date.now() - startedAt > 25000) {
-      handleRegisterTimeout();
-      return;
-    }
-
-    const script =
-      document.createElement("script");
-
-    script.src =
-      WEB_APP_URL +
-      "?action=registerResult" +
-      "&requestId=" +
-      encodeURIComponent(requestId) +
-      "&callback=registerResultCallback" +
-      "&_=" +
-      Date.now();
-
-    script.onerror = function() {
-      script.remove();
-
-      resultPollTimer =
-        setTimeout(poll, 1000);
-    };
-
-    document.body.appendChild(script);
-
-    setTimeout(function() {
-      if (script.isConnected) {
-        script.remove();
+      if (isSubmitting) {
+        return;
       }
-    }, 3000);
-  }
 
-  window.registerResultCallback =
-    function(result) {
-      if (!result || !result.ready) {
-        resultPollTimer =
-          setTimeout(poll, 1000);
+      const currentIdToken =
+        String(liff.getIDToken() || "").trim();
+
+      const decodedToken =
+        liff.getDecodedIDToken();
+
+      const currentTime =
+        Math.floor(Date.now() / 1000);
+
+      if (
+        !currentIdToken ||
+        !decodedToken ||
+        !decodedToken.exp ||
+        decodedToken.exp <= currentTime
+      ) {
+        alert(
+          "ข้อมูลเข้าสู่ระบบ LINE หมดอายุแล้ว\n" +
+          "กรุณาปิดหน้านี้แล้วเปิดใหม่อีกครั้ง"
+        );
+
+        if (liff.isInClient()) {
+          liff.closeWindow();
+        }
 
         return;
       }
 
-      handleRegisterResult(result);
-    };
+      lineIdToken = currentIdToken;
 
-  poll();
-}
+      const universityId =
+        document
+          .getElementById("universityId")
+          .value
+          .trim();
 
+      const name =
+        document
+          .getElementById("name")
+          .value
+          .trim();
 
-function handleRegisterResult(result) {
-  clearTimeout(resultPollTimer);
+      const facultyOrUnit =
+        document
+          .getElementById("facultyOrUnit")
+          .value
+          .trim();
 
-  isSubmitting = false;
+      if (
+        !universityId ||
+        !name ||
+        !facultyOrUnit
+      ) {
+        alert(
+          "กรุณากรอกข้อมูลให้ครบทุกช่อง"
+        );
+        return;
+      }
 
-  const button =
-    document.getElementById("registerButton");
+      if (
+        memberType === "Student" &&
+        !/^\d+$/.test(universityId)
+      ) {
+        alert(
+          "รหัสนักศึกษาต้องเป็นตัวเลขเท่านั้น"
+        );
+        return;
+      }
 
-  const statusText =
-    document.getElementById("statusText");
+      const button =
+        document.getElementById("registerButton");
 
-  alert(
-    result.message ||
-    "ระบบตอบกลับเรียบร้อย"
-  );
+      const statusText =
+        document.getElementById("statusText");
 
-  if (result.success) {
-    button.disabled = true;
-    button.textContent = "สมัครสำเร็จ";
+      isSubmitting = true;
 
-    statusText.textContent =
-      "สมัครสมาชิกสำเร็จ";
+      button.disabled = true;
+      button.textContent =
+        "กำลังสมัคร...";
 
-    statusText.className =
-      "success";
+      statusText.className = "";
+      statusText.textContent =
+        "กำลังตรวจสอบและบันทึกข้อมูลสมาชิก...";
 
-    if (liff.isInClient()) {
+      currentRequestId =
+        "req_" +
+        Date.now() +
+        "_" +
+        Math.random()
+          .toString(36)
+          .slice(2);
+
+      const form =
+        document.createElement("form");
+
+      form.method = "POST";
+      form.action = WEB_APP_URL;
+      form.target = "apiFrame";
+      form.style.display = "none";
+
+      const values = {
+        action: "register",
+        requestId: currentRequestId,
+        universityId: universityId,
+        name: name,
+        facultyOrUnit: facultyOrUnit,
+        memberType: memberType,
+        idToken: lineIdToken
+      };
+
+      Object.keys(values).forEach(
+        function(key) {
+          const input =
+            document.createElement("input");
+
+          input.type = "hidden";
+          input.name = key;
+          input.value = values[key];
+
+          form.appendChild(input);
+        }
+      );
+
+      document.body.appendChild(form);
+
+      form.submit();
+
+      startResultPolling(
+        currentRequestId
+      );
+
       setTimeout(function() {
-        liff.closeWindow();
-      }, 800);
+        if (form.isConnected) {
+          form.remove();
+        }
+      }, 2000);
     }
 
-    return;
-  }
+    function startResultPolling(requestId) {
+      const startedAt = Date.now();
 
-  button.disabled = false;
-  button.textContent = "สมัครสมาชิก";
+      function poll() {
+        if (
+          Date.now() - startedAt >
+          25000
+        ) {
+          handleRegisterTimeout();
+          return;
+        }
 
-  statusText.textContent =
-    result.message ||
-    "สมัครสมาชิกไม่สำเร็จ";
+        const script =
+          document.createElement("script");
 
-  statusText.className = "error";
-}
+        script.src =
+          WEB_APP_URL +
+          "?action=registerResult" +
+          "&requestId=" +
+          encodeURIComponent(requestId) +
+          "&callback=registerResultCallback" +
+          "&_=" +
+          Date.now();
 
+        script.onerror =
+          function() {
+            script.remove();
 
-function handleRegisterTimeout() {
-  clearTimeout(resultPollTimer);
+            resultPollTimer =
+              setTimeout(
+                poll,
+                1000
+              );
+          };
 
-  isSubmitting = false;
+        document.body.appendChild(script);
 
-  const button =
-    document.getElementById("registerButton");
+        setTimeout(function() {
+          if (script.isConnected) {
+            script.remove();
+          }
+        }, 3000);
+      }
 
-  const statusText =
-    document.getElementById("statusText");
+      window.registerResultCallback =
+        function(result) {
+          if (
+            !result ||
+            !result.ready
+          ) {
+            resultPollTimer =
+              setTimeout(
+                poll,
+                1000
+              );
 
-  button.disabled = false;
-  button.textContent = "สมัครสมาชิก";
+            return;
+          }
 
-  statusText.textContent =
-    "ไม่สามารถตรวจสอบผลการสมัครได้ กรุณาตรวจสอบข้อมูลในระบบ";
+          handleRegisterResult(result);
+        };
 
-  statusText.className = "error";
-}
+      poll();
+    }
+
+    function handleRegisterResult(result) {
+      clearTimeout(resultPollTimer);
+
+      isSubmitting = false;
+
+      const button =
+        document.getElementById("registerButton");
+
+      const statusText =
+        document.getElementById("statusText");
+
+      alert(
+        result.message ||
+        "ระบบตอบกลับเรียบร้อย"
+      );
+
+      if (result.success) {
+        button.disabled = true;
+        button.textContent =
+          "สมัครสำเร็จ";
+
+        statusText.textContent =
+          "สมัครสมาชิกสำเร็จ";
+
+        statusText.className =
+          "success";
+
+        if (liff.isInClient()) {
+          setTimeout(function() {
+            liff.closeWindow();
+          }, 800);
+        }
+
+        return;
+      }
+
+      button.disabled = false;
+      button.textContent =
+        "สมัครสมาชิก";
+
+      statusText.textContent =
+        result.message ||
+        "สมัครสมาชิกไม่สำเร็จ";
+
+      statusText.className =
+        "error";
+    }
+
+    function handleRegisterTimeout() {
+      clearTimeout(resultPollTimer);
+
+      isSubmitting = false;
+
+      const button =
+        document.getElementById("registerButton");
+
+      const statusText =
+        document.getElementById("statusText");
+
+      button.disabled = false;
+      button.textContent =
+        "สมัครสมาชิก";
+
+      statusText.textContent =
+        "ไม่สามารถตรวจสอบผลการสมัครได้ กรุณาลองใหม่";
+
+      statusText.className =
+        "error";
+    }
+
     window.addEventListener(
       "load",
-      initializeLiff
+      function() {
+        renderStudentAffiliations();
+        initializeLiff();
+      }
     );
   </script>
 
