@@ -600,43 +600,59 @@ function updateMemberTypeLanguage() {
     let currentRequestId = "";
 
     function selectMemberType(type) {
-      memberType = type;
+  if (
+    type !== "Student" &&
+    type !== "Personnel"
+  ) {
+    return;
+  }
 
-      const studentButton =
-        document.getElementById("studentTypeButton");
+  memberType = type;
 
-      const personnelButton =
-        document.getElementById("personnelTypeButton");
+  const studentButton =
+    document.getElementById(
+      "studentTypeButton"
+    );
 
-      const universityId =
-        document.getElementById("universityId");
+  const personnelButton =
+    document.getElementById(
+      "personnelTypeButton"
+    );
 
-      if (type === "Student") {
-        studentButton.classList.add("active");
-        personnelButton.classList.remove("active");
+  const universityId =
+    document.getElementById(
+      "universityId"
+    );
 
-        universityId.placeholder =
-          "รหัสนักศึกษา";
+  if (memberType === "Student") {
+    studentButton.classList.add(
+      "active"
+    );
 
-        universityId.inputMode =
-          "numeric";
+    personnelButton.classList.remove(
+      "active"
+    );
 
-        renderStudentAffiliations();
+    universityId.inputMode =
+      "numeric";
 
-      } else {
-        personnelButton.classList.add("active");
-        studentButton.classList.remove("active");
+  } else {
+    personnelButton.classList.add(
+      "active"
+    );
 
-        universityId.placeholder =
-          "รหัสบุคลากร";
+    studentButton.classList.remove(
+      "active"
+    );
 
-        universityId.inputMode =
-          "text";
+    universityId.inputMode =
+      "text";
+  }
 
-        renderPersonnelAffiliations();
-      }
-    }
-
+  // อัปเดต Placeholder และ Dropdown
+  // ให้ตรงกับภาษาปัจจุบันทุกครั้ง
+  updateMemberTypeLanguage();
+}
     function clearAffiliationSelect() {
       const select =
         document.getElementById("facultyOrUnit");
