@@ -541,6 +541,59 @@ function updateMemberTypeLanguage() {
       "บัณฑิตวิทยาลัย"
     ];
 
+const STUDENT_AFFILIATION_TRANSLATIONS = {
+  "คณะแพทยศาสตร์":
+    "Faculty of Medicine",
+
+  "คณะทันตแพทยศาสตร์":
+    "Faculty of Dentistry",
+
+  "คณะเภสัชศาสตร์":
+    "Faculty of Pharmaceutical Sciences",
+
+  "คณะพยาบาลศาสตร์":
+    "Faculty of Nursing",
+
+  "คณะเทคนิคการแพทย์":
+    "Faculty of Medical Technology",
+
+  "คณะการแพทย์แผนไทย":
+    "Faculty of Traditional Thai Medicine",
+
+  "คณะวิศวกรรมศาสตร์":
+    "Faculty of Engineering",
+
+  "คณะวิทยาศาสตร์":
+    "Faculty of Science",
+
+  "คณะทรัพยากรธรรมชาติ":
+    "Faculty of Natural Resources",
+
+  "คณะอุตสาหกรรมเกษตร":
+    "Faculty of Agro-Industry",
+
+  "คณะสัตวแพทยศาสตร์":
+    "Faculty of Veterinary Science",
+
+  "คณะวิทยาการจัดการ":
+    "Faculty of Management Sciences",
+
+  "คณะศิลปศาสตร์":
+    "Faculty of Liberal Arts",
+
+  "คณะนิติศาสตร์":
+    "Faculty of Law",
+
+  "คณะเศรษฐศาสตร์":
+    "Faculty of Economics",
+
+  "วิทยาลัยนานาชาติ":
+    "International College",
+
+  "บัณฑิตวิทยาลัย":
+    "Graduate School"
+};
+    
     const PERSONNEL_GROUPS = [
       {
         label: "ส่วนงานนโยบายและบริหารกลาง",
@@ -789,26 +842,39 @@ const PERSONNEL_UNIT_TRANSLATIONS = {
       return option;
     }
 
-    function renderStudentAffiliations() {
-      const select =
-        clearAffiliationSelect();
+function renderStudentAffiliations() {
+  const select =
+    clearAffiliationSelect();
+
+  select.appendChild(
+    createOption(
+      "",
+      getText(
+        "selectStudentAffiliation"
+      )
+    )
+  );
+
+  STUDENT_AFFILIATIONS.forEach(
+    function(item) {
+      const displayText =
+        currentLanguage === "en"
+          ? (
+              STUDENT_AFFILIATION_TRANSLATIONS[
+                item
+              ] || item
+            )
+          : item;
 
       select.appendChild(
-  createOption(
-    "",
-    getText(
-      "selectStudentAffiliation"
-    )
-  )
-);
-      STUDENT_AFFILIATIONS.forEach(
-        function(item) {
-          select.appendChild(
-            createOption(item, item)
-          );
-        }
+        createOption(
+          item,
+          displayText
+        )
       );
     }
+  );
+}
 
 function renderPersonnelAffiliations() {
   const select =
