@@ -115,19 +115,67 @@
     .error {
       color: #c62828 !important;
     }
+
+    .language-switcher {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.language-button {
+  width: auto;
+  padding: 7px 12px;
+  border: 1px solid #cccccc;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #555555;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.language-button.active {
+  border-color: #222222;
+  background: #222222;
+  color: #ffffff;
+}
   </style>
 </head>
 
 <body>
 
   <div class="card">
+<div class="language-switcher">
+  <button
+    id="thaiLanguageButton"
+    type="button"
+    class="language-button active"
+    onclick="changeLanguage('th')"
+  >
+    ไทย
+  </button>
 
-    <h2>สมัครสมาชิกชมรมยิงปืน</h2>
+  <button
+    id="englishLanguageButton"
+    type="button"
+    class="language-button"
+    onclick="changeLanguage('en')"
+  >
+    English
+  </button>
+</div>
+    
+    <h2 id="pageTitle">
+  สมัครสมาชิกชมรมยิงปืน
+</h2>
 
-    <p class="subtitle">
-      กรุณาเลือกประเภทสมาชิกและกรอกข้อมูล
-    </p>
-
+    <p
+  id="pageSubtitle"
+  class="subtitle"
+>
+  กรุณาเลือกประเภทสมาชิกและกรอกข้อมูล
+</p>
+    
     <div class="member-type">
       <button
         id="studentTypeButton"
@@ -188,6 +236,285 @@
   ></iframe>
 
   <script>
+    /**
+ * ==========================================
+ * Language System
+ * ==========================================
+ */
+
+const TRANSLATIONS = {
+  th: {
+    pageTitle:
+      "สมัครสมาชิกชมรมยิงปืน",
+
+    pageSubtitle:
+      "กรุณาเลือกประเภทสมาชิกและกรอกข้อมูล",
+
+    student:
+      "นักศึกษา",
+
+    personnel:
+      "บุคลากร",
+
+    studentId:
+      "รหัสนักศึกษา",
+
+    personnelId:
+      "รหัสบุคลากร",
+
+    fullName:
+      "ชื่อ - นามสกุล",
+
+    selectStudentAffiliation:
+      "กรุณาเลือกคณะหรือวิทยาลัย",
+
+    selectPersonnelAffiliation:
+      "กรุณาเลือกส่วนงานหรือหน่วยงาน",
+
+    register:
+      "สมัครสมาชิก",
+
+    connecting:
+      "กำลังเชื่อมต่อ LINE...",
+
+    startingLine:
+      "กำลังเริ่มต้นระบบ LINE...",
+
+    connectingLine:
+      "กำลังเชื่อมต่อกับ LINE...",
+
+    loggingIn:
+      "กำลังเข้าสู่ระบบ LINE...",
+
+    readingProfile:
+      "กำลังอ่านข้อมูลบัญชี LINE...",
+
+    ready:
+      "พร้อมใช้งาน",
+
+    connectionFailed:
+      "เชื่อมต่อ LINE ไม่สำเร็จ",
+
+    submitting:
+      "กำลังสมัคร...",
+
+    processing:
+      "กำลังตรวจสอบและบันทึกข้อมูลสมาชิก...",
+
+    registrationSuccess:
+      "สมัครสมาชิกสำเร็จ",
+
+    requiredFields:
+      "กรุณากรอกข้อมูลให้ครบทุกช่อง",
+
+    invalidStudentId:
+      "รหัสนักศึกษาต้องเป็นตัวเลขเท่านั้น",
+
+    expiredToken:
+      "ข้อมูลเข้าสู่ระบบ LINE หมดอายุแล้ว\nกรุณาปิดหน้านี้แล้วเปิดใหม่อีกครั้ง",
+
+    timeout:
+      "ไม่สามารถตรวจสอบผลการสมัครได้ กรุณาลองใหม่",
+
+    genericError:
+      "เกิดข้อผิดพลาด"
+  },
+
+  en: {
+    pageTitle:
+      "PSU Shooting Club Membership",
+
+    pageSubtitle:
+      "Please select your member type and complete the form.",
+
+    student:
+      "Student",
+
+    personnel:
+      "Staff",
+
+    studentId:
+      "Student ID",
+
+    personnelId:
+      "Staff ID",
+
+    fullName:
+      "Full Name",
+
+    selectStudentAffiliation:
+      "Select Faculty or College",
+
+    selectPersonnelAffiliation:
+      "Select Office or Department",
+
+    register:
+      "Register",
+
+    connecting:
+      "Connecting to LINE...",
+
+    startingLine:
+      "Starting LINE services...",
+
+    connectingLine:
+      "Connecting to LINE...",
+
+    loggingIn:
+      "Signing in to LINE...",
+
+    readingProfile:
+      "Reading your LINE profile...",
+
+    ready:
+      "Ready",
+
+    connectionFailed:
+      "Unable to connect to LINE",
+
+    submitting:
+      "Registering...",
+
+    processing:
+      "Checking and saving your membership information...",
+
+    registrationSuccess:
+      "Registration successful",
+
+    requiredFields:
+      "Please complete all required fields.",
+
+    invalidStudentId:
+      "The student ID must contain numbers only.",
+
+    expiredToken:
+      "Your LINE login session has expired.\nPlease close this page and open it again.",
+
+    timeout:
+      "Unable to confirm the registration result. Please try again.",
+
+    genericError:
+      "An error occurred"
+  }
+};
+
+let currentLanguage =
+  localStorage.getItem(
+    "shootingClubLanguage"
+  ) || "th";
+
+function getText(key) {
+  return (
+    TRANSLATIONS[currentLanguage][key] ||
+    TRANSLATIONS.th[key] ||
+    key
+  );
+}
+
+function changeLanguage(language) {
+  if (
+    language !== "th" &&
+    language !== "en"
+  ) {
+    return;
+  }
+
+  currentLanguage = language;
+
+  localStorage.setItem(
+    "shootingClubLanguage",
+    language
+  );
+
+  applyLanguage();
+}
+
+function applyLanguage() {
+  document.documentElement.lang =
+    currentLanguage;
+
+  document.getElementById(
+    "pageTitle"
+  ).textContent =
+    getText("pageTitle");
+
+  document.getElementById(
+    "pageSubtitle"
+  ).textContent =
+    getText("pageSubtitle");
+
+  document.getElementById(
+    "studentTypeButton"
+  ).textContent =
+    getText("student");
+
+  document.getElementById(
+    "personnelTypeButton"
+  ).textContent =
+    getText("personnel");
+
+  document.getElementById(
+    "name"
+  ).placeholder =
+    getText("fullName");
+
+  updateLanguageButtons();
+  updateMemberTypeLanguage();
+}
+
+function updateLanguageButtons() {
+  const thaiButton =
+    document.getElementById(
+      "thaiLanguageButton"
+    );
+
+  const englishButton =
+    document.getElementById(
+      "englishLanguageButton"
+    );
+
+  thaiButton.classList.toggle(
+    "active",
+    currentLanguage === "th"
+  );
+
+  englishButton.classList.toggle(
+    "active",
+    currentLanguage === "en"
+  );
+}
+
+function updateMemberTypeLanguage() {
+  const idInput =
+    document.getElementById(
+      "universityId"
+    );
+
+  if (memberType === "Student") {
+    idInput.placeholder =
+      getText("studentId");
+
+    renderStudentAffiliations();
+  } else {
+    idInput.placeholder =
+      getText("personnelId");
+
+    renderPersonnelAffiliations();
+  }
+
+  if (!isSubmitting) {
+    const button =
+      document.getElementById(
+        "registerButton"
+      );
+
+    if (!button.disabled) {
+      button.textContent =
+        getText("register");
+    }
+  }
+}
+    
     const LIFF_ID =
       "2010089876-qsjILd9E";
 
@@ -334,12 +661,13 @@
         clearAffiliationSelect();
 
       select.appendChild(
-        createOption(
-          "",
-          "กรุณาเลือกคณะหรือวิทยาลัย"
-        )
-      );
-
+  createOption(
+    "",
+    getText(
+      "selectStudentAffiliation"
+    )
+  )
+);
       STUDENT_AFFILIATIONS.forEach(
         function(item) {
           select.appendChild(
@@ -719,12 +1047,12 @@
     }
 
     window.addEventListener(
-      "load",
+        "load",
       function() {
-        renderStudentAffiliations();
+        applyLanguage();
         initializeLiff();
-      }
-    );
+  }
+);
 
     console.log("PSU Shooting Club");
     console.log("Version : 1.0.0 Stable");
