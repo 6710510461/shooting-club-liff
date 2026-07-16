@@ -546,6 +546,7 @@ function updateMemberTypeLanguage() {
         label: "ส่วนงานนโยบายและบริหารกลาง",
         items: [
           "สำนักงานอธิการบดี",
+          "กองพัฒนานักศึกษา",
           "กองกลาง",
           "กองคลัง",
           "กองนโยบาย ยุทธศาสตร์ และแผน",
@@ -592,7 +593,123 @@ function updateMemberTypeLanguage() {
         ]
       }
     ];
+const PERSONNEL_GROUP_TRANSLATIONS = {
+  "ส่วนงานนโยบายและบริหารกลาง":
+    "Policy and Central Administration",
 
+  "คณะและส่วนงานจัดการศึกษา":
+    "Faculties and Academic Units",
+
+  "ส่วนงานสนับสนุน บริการวิชาการ และสถาบันวิจัย":
+    "Support, Academic Service and Research Units"
+};
+
+const PERSONNEL_UNIT_TRANSLATIONS = {
+  "สำนักงานอธิการบดี":
+    "Office of the President",
+
+  "กองพัฒนานักศึกษา":
+    "Student Development Division",
+
+  "กองกลาง":
+    "Central Administration Division",
+
+  "กองคลัง":
+    "Finance Division",
+
+  "กองนโยบาย ยุทธศาสตร์ และแผน":
+    "Policy, Strategy and Planning Division",
+
+  "กองบริหารทรัพยากรบุคคล":
+    "Human Resources Management Division",
+
+  "ศูนย์กิจการนานาชาติและสื่อสารองค์กร":
+    "International Affairs and Corporate Communication Center",
+
+  "ศูนย์บริหารจัดการคุณภาพองค์กร":
+    "Organizational Quality Management Center",
+
+  "สำนักกฎหมาย":
+    "Legal Affairs Office",
+
+  "หอประวัติ ม.อ.":
+    "PSU Archives",
+
+  "คณะวิศวกรรมศาสตร์":
+    "Faculty of Engineering",
+
+  "คณะวิทยาศาสตร์":
+    "Faculty of Science",
+
+  "คณะแพทยศาสตร์":
+    "Faculty of Medicine",
+
+  "คณะพยาบาลศาสตร์":
+    "Faculty of Nursing",
+
+  "คณะวิทยาการจัดการ":
+    "Faculty of Management Sciences",
+
+  "คณะทรัพยากรธรรมชาติ":
+    "Faculty of Natural Resources",
+
+  "คณะเภสัชศาสตร์":
+    "Faculty of Pharmaceutical Sciences",
+
+  "คณะทันตแพทยศาสตร์":
+    "Faculty of Dentistry",
+
+  "คณะอุตสาหกรรมเกษตร":
+    "Faculty of Agro-Industry",
+
+  "คณะศิลปศาสตร์":
+    "Faculty of Liberal Arts",
+
+  "คณะนิติศาสตร์":
+    "Faculty of Law",
+
+  "คณะเทคนิคการแพทย์":
+    "Faculty of Medical Technology",
+
+  "คณะสัตวแพทยศาสตร์":
+    "Faculty of Veterinary Science",
+
+  "คณะการจัดการสิ่งแวดล้อม":
+    "Faculty of Environmental Management",
+
+  "คณะการแพทย์แผนไทย":
+    "Faculty of Traditional Thai Medicine",
+
+  "คณะเศรษฐศาสตร์":
+    "Faculty of Economics",
+
+  "วิทยาลัยนานาชาติ วิทยาเขตหาดใหญ่":
+    "International College, Hat Yai Campus",
+
+  "บัณฑิตวิทยาลัย":
+    "Graduate School",
+
+  "สำนักนวัตกรรมดิจิทัลและระบบอัจฉริยะ":
+    "Office of Digital Innovation and Intelligent Systems",
+
+  "สำนักทรัพยากรการเรียนรู้คุณหญิงหลง อรรถกระวีสุนทร":
+    "Khunying Long Athakravisunthorn Learning Resources Center",
+
+  "สำนักวิจัยและพัฒนา":
+    "Research and Development Office",
+
+  "สถาบันทรัพยากรมนุษย์":
+    "Human Resources Institute",
+
+  "สถาบันสันติศึกษา":
+    "Institute for Peace Studies",
+
+  "สถาบันนโยบายสาธารณะ":
+    "Public Policy Institute",
+
+  "สถาบันฮาลาล":
+    "Halal Institute"
+};
     let memberType = "Student";
     let lineIdToken = "";
     let isSubmitting = false;
@@ -693,37 +810,61 @@ function updateMemberTypeLanguage() {
       );
     }
 
-    function renderPersonnelAffiliations() {
-      const select =
-        clearAffiliationSelect();
+function renderPersonnelAffiliations() {
+  const select =
+    clearAffiliationSelect();
 
-      select.appendChild(
-        createOption(
-          "",
-          "กรุณาเลือกส่วนงานหรือหน่วยงาน"
-        )
-      );
+  select.appendChild(
+    createOption(
+      "",
+      getText(
+        "selectPersonnelAffiliation"
+      )
+    )
+  );
 
-      PERSONNEL_GROUPS.forEach(
-        function(group) {
-          const optgroup =
-            document.createElement("optgroup");
+  PERSONNEL_GROUPS.forEach(
+    function(group) {
+      const optgroup =
+        document.createElement(
+          "optgroup"
+        );
 
-          optgroup.label =
-            group.label;
+      optgroup.label =
+        currentLanguage === "en"
+          ? (
+              PERSONNEL_GROUP_TRANSLATIONS[
+                group.label
+              ] || group.label
+            )
+          : group.label;
 
-          group.items.forEach(
-            function(item) {
-              optgroup.appendChild(
-                createOption(item, item)
-              );
-            }
+      group.items.forEach(
+        function(item) {
+          const displayText =
+            currentLanguage === "en"
+              ? (
+                  PERSONNEL_UNIT_TRANSLATIONS[
+                    item
+                  ] || item
+                )
+              : item;
+
+          optgroup.appendChild(
+            createOption(
+              item,
+              displayText
+            )
           );
-
-          select.appendChild(optgroup);
         }
       );
+
+      select.appendChild(
+        optgroup
+      );
     }
+  );
+}
 
     async function initializeLiff() {
       const button =
