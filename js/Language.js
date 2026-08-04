@@ -115,3 +115,8 @@ function updateMemberTypeLanguage() {
     }
   }
 }
+    let memberType = "Student";
+    let lineIdToken = "";
+    let isSubmitting = false;
+    let resultPollTimer = null;
+    let currentRequestId = "";
